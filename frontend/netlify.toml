@@ -5,6 +5,12 @@
   force  = true
 
 [[redirects]]
+  from = "/uploads/*"
+  to   = "https://seismoscan-api.onrender.com/uploads/:splat"
+  status = 200
+  force  = true
+
+[[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
