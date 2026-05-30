@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f4f6f9;
+  color: #333;
+  line-height: 1.6;
+}
+
+:root {
+  --primary: #1e3a5f;
+  --primary-light: #2d5488;
+  --primary-dark: #152c47;
+  --secondary: #e74c3c;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --info: #3498db;
+  --light: #f8f9fa;
+  --dark: #2c3e50;
+  --border: #dee2e6;
+  --shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --radius: 8px;
+}
+
+/* Layout */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.page-container { min-height: 100vh; display: flex; flex-direction: column; }
+.content-area { flex: 1; padding: 24px; }
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ── Responsive table scroll wrapper ─────────────────────────── */
+/* Wrap any <table> in <div class="table-scroll"> to enable
+   horizontal scrolling on narrow screens without breaking layout. */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Responsive 2-column form grid ───────────────────────────── */
+/* Applied to inline-style grids via a utility class added to the
+   wrapping div wherever gridTemplateColumns: '1fr 1fr' is used. */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── Responsive 3-column form grid ───────────────────────────── */
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── Two-panel assessment layout (form + sidebar) ────────────── */
+.assessment-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Responsive breakpoints ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .assessment-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,108 @@
+/* RVS Print Form Styles */
+.rvs-print-form {
+  background: #fff;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  color: #000;
+}
+
+.rvs-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 6px 8px;
+  border: 2px solid #000;
+  border-bottom: 1px solid #000;
+  background: #f0f0f0;
+}
+
+.rvs-photo-box {
+  border-bottom: 1px solid #ccc;
+  min-height: 145px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9f9f9;
+}
+
+.rvs-sketch-box {
+  border-bottom: 1px solid #ccc;
+  min-height: 120px;
+  background: #fff;
+}
+
+.rvs-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5px;
+}
+
+.rvs-info-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: top;
+}
+
+.rvs-label {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  width: 110px;
+}
+
+.rvs-value-line {
+  border-bottom: 1px solid #999;
+  min-width: 80px;
+}
+
+.rvs-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+
+.rvs-score-table th,
+.rvs-score-table td {
+  border: 1px solid #ccc;
+  padding: 3px 5px;
+  text-align: center;
+}
+
+.rvs-score-table th {
+  background: #e0e0e0;
+  font-weight: 700;
+  font-size: 8.5px;
+}
+
+/* Print-specific styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .rvs-print-form {
+    padding: 0;
+    max-width: 100%;
+    font-size: 9px;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  .score-display,
+  .stat-card,
+  .navbar,
+  .sidebar {
+    display: none !important;
+  }
+}
