@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { reportAPI } from '../utils/api';
 import { API_BASE_URL } from '../utils/api';
@@ -12,18 +12,18 @@ function ReportPage() {
   const [exporting, setExporting] = useState(false);
   const printRef = useRef();
 
-  useEffect(() => { loadReport(); }, [id]);
+const loadReport = useCallback(async () => {
+  try {
+    const res = await reportAPI.getReport(id);
+    setReport(res.data.report);
+  } catch (err) {
+    console.error('Load report error:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
 
-  const loadReport = async () => {
-    try {
-      const res = await reportAPI.getReport(id);
-      setReport(res.data.report);
-    } catch (err) {
-      console.error('Load report error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => { loadReport(); }, [loadReport]);
 
   const handlePrint = () => window.print();
 
