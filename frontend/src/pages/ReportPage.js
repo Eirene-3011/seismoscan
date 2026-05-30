@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { reportAPI } from '../utils/api';
-import { API_BASE_URL } from '../utils/api';
 import './ReportPage.css';
 
 function ReportPage() {
@@ -243,7 +242,7 @@ useEffect(() => { loadReport(); }, [loadReport]);
                 <div className="rvs-photo-box" style={{ borderBottom: '1px solid #000' }}>
                   {t2.length > 0 ? (
                     <img
-                      src={`${API_BASE_URL}${t2[0].url}`}
+                      src={t2[0].url}
                       alt="Building"
                       style={{ width: '100%', height: '140px', objectFit: 'cover' }}
                       onError={(e) => { e.target.style.display = 'none'; }}
