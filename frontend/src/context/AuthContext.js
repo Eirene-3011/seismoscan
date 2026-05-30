@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -10,25 +10,25 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('seismoscan_token'));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
+  const fetchProfile = useCallback(async () => {
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/profile`);
+    setUser(res.data.user);
+  } catch (err) {
+    logout();
+  } finally {
+    setLoading(false);
+  }
+}, []);  // no external deps needed here
 
-  const fetchProfile = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/api/auth/profile`);
-      setUser(res.data.user);
-    } catch (err) {
-      logout();
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => {
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    fetchProfile();
+  } else {
+    setLoading(false);
+  }
+}, [token, fetchProfile]);
 
   const login = async (email, password) => {
     const res = await axios.post(`${API_BASE}/api/auth/login`, { email, password });
