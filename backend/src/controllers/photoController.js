@@ -1,6 +1,5 @@
 const { pool } = require('../config/database');
-const fs = require('fs');
-const path = require('path');
+const cloudinary = require('cloudinary').v2;
 
 const uploadPhoto = async (req, res) => {
   try {
@@ -14,13 +13,14 @@ const uploadPhoto = async (req, res) => {
       return res.status(400).json({ message: 'Building ID is required.' });
     }
 
-    // Verify building exists
     const [buildings] = await pool.execute('SELECT id FROM buildings WHERE id = ?', [building_id]);
     if (buildings.length === 0) {
       return res.status(404).json({ message: 'Building not found.' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // Cloudinary gives us a full URL and public_id directly
+    const imageUrl  = req.file.path;        // full https://res.cloudinary.com/... URL
+    const publicId  = req.file.filename;    // cloudinary public_id for deletion later
 
     const [result] = await pool.execute(
       'INSERT INTO photos (building_id, assessment_id, image_url, caption) VALUES (?, ?, ?, ?)',
@@ -28,7 +28,6 @@ const uploadPhoto = async (req, res) => {
     );
 
     const [photo] = await pool.execute('SELECT * FROM photos WHERE id = ?', [result.insertId]);
-
     res.status(201).json({ message: 'Photo uploaded successfully.', photo: photo[0] });
   } catch (error) {
     console.error('Upload photo error:', error);
@@ -67,10 +66,15 @@ const deletePhoto = async (req, res) => {
 
     const photo = photos[0];
 
-    // Delete physical file
-    const filePath = path.join(process.env.UPLOAD_PATH || './uploads', path.basename(photo.image_url));
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Delete from Cloudinary using the public_id extracted from the URL
+    try {
+      const urlParts  = photo.image_url.split('/');
+      const fileName  = urlParts[urlParts.length - 1].split('.')[0];
+      const publicId  = `seismoscan/${fileName}`;
+      await cloudinary.uploader.destroy(publicId);
+    } catch (cloudErr) {
+      console.error('Cloudinary delete error:', cloudErr);
+      // Don't block DB deletion if Cloudinary fails
     }
 
     await pool.execute('DELETE FROM photos WHERE id = ?', [req.params.id]);
