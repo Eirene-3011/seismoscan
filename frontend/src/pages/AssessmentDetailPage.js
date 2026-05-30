@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { rvsAPI, API_BASE_URL } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -52,19 +52,19 @@ function AssessmentDetailPage() {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadAssessment(); }, [id]);
+ const loadAssessment = useCallback(async () => {
+  try {
+    const res = await rvsAPI.getById(id);
+    setAssessment(res.data.assessment);
+    setPhotos(res.data.photos || []);
+  } catch (err) {
+    console.error('Load assessment error:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
 
-  const loadAssessment = async () => {
-    try {
-      const res = await rvsAPI.getById(id);
-      setAssessment(res.data.assessment);
-      setPhotos(res.data.photos || []);
-    } catch (err) {
-      console.error('Load assessment error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => { loadAssessment(); }, [loadAssessment]);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this assessment?')) {
@@ -145,7 +145,7 @@ function AssessmentDetailPage() {
     { label: 'Soil Type E (1–3 stories)',       value: parseFloat(a.mod_soil_type_e_1_3)  || 0 },
     { label: 'Soil Type E (>3 stories)',        value: parseFloat(a.mod_soil_type_e_gt3)  || 0 },
   ].filter(m => m.value !== 0);
-  const totalMods = modifiers.reduce((s, m) => s + m.value, 0);
+
   const maxAbsMod = Math.max(...modifiers.map(m => Math.abs(m.value)), 0.1);
 
   /* ── sub-components ── */
