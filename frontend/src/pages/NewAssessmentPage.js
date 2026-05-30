@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { buildingAPI, rvsAPI } from '../utils/api';
 
@@ -161,42 +161,50 @@ function NewAssessmentPage() {
     level2_nonstructural: '',
     comments: '',
   });
+const loadBuildings = useCallback(async () => {
+  try {
+    const res = await buildingAPI.getAll({ limit: 200 });
+    setBuildings(res.data.buildings || []);
+  } catch (err) {
+    console.error('Load buildings error:', err);
+  }
+}, []);
 
-  useEffect(() => { loadBuildings(); }, []);
+const computeLiveScore = useCallback(async () => {
+  try {
+    const building = buildings.find(b => String(b.id) === String(form.building_id));
+    const res = await rvsAPI.computeScore({
+      building_type: form.building_type,
+      soil_type: form.soil_type,
+      irregularity_vertical: form.irregularity_vertical,
+      irregularity_plan: form.irregularity_plan,
+      irregularity_severe_vertical: form.irregularity_severe_vertical,
+      irregularity_moderate_vertical: form.irregularity_moderate_vertical,
+      year_built: building?.year_built,
+      stories_above: building?.stories_above,
+    });
+    setLiveScore(res.data);
+  } catch (err) {
+    // silently fail for live score
+  }
+}, [
+  buildings,
+  form.building_id,
+  form.building_type,
+  form.soil_type,
+  form.irregularity_vertical,
+  form.irregularity_plan,
+  form.irregularity_severe_vertical,
+  form.irregularity_moderate_vertical,
+]);
 
-  useEffect(() => {
-    if (form.building_id && form.building_type) {
-      computeLiveScore();
-    }
-  }, [form.building_id, form.building_type, form.soil_type, form.irregularity_vertical, form.irregularity_plan, form.irregularity_severe_vertical, form.irregularity_moderate_vertical]);
+useEffect(() => { loadBuildings(); }, [loadBuildings]);
 
-  const loadBuildings = async () => {
-    try {
-      const res = await buildingAPI.getAll({ limit: 200 });
-      setBuildings(res.data.buildings || []);
-    } catch (err) {
-      console.error('Load buildings error:', err);
-    }
-  };
-
-  const computeLiveScore = async () => {
-    try {
-      const building = buildings.find(b => String(b.id) === String(form.building_id));
-      const res = await rvsAPI.computeScore({
-        building_type: form.building_type,
-        soil_type: form.soil_type,
-        irregularity_vertical: form.irregularity_vertical,
-        irregularity_plan: form.irregularity_plan,
-        irregularity_severe_vertical: form.irregularity_severe_vertical,
-        irregularity_moderate_vertical: form.irregularity_moderate_vertical,
-        year_built: building?.year_built,
-        stories_above: building?.stories_above,
-      });
-      setLiveScore(res.data);
-    } catch (err) {
-      // silently fail for live score
-    }
-  };
+useEffect(() => {
+  if (form.building_id && form.building_type) {
+    computeLiveScore();
+  }
+}, [computeLiveScore, form.building_id, form.building_type]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
