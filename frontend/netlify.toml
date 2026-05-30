@@ -1,14 +1,10 @@
 [[redirects]]
-  # Proxy /api/* calls to the Render backend during production.
-  # Replace the `to` URL with your actual Render service URL.
   from = "/api/*"
-  to   = "https://YOUR_RENDER_APP.onrender.com/api/:splat"
+  to   = "https://seismoscan-api.onrender.com/api/:splat"
   status = 200
   force  = true
 
 [[redirects]]
-  # SPA catch-all: route every non-file request to index.html
-  # so React Router can handle client-side navigation.
   from   = "/*"
   to     = "/index.html"
   status = 200
