@@ -154,8 +154,8 @@ const getAssessments = async (req, res) => {
       params.push(building_id);
     }
 
-    query += ' ORDER BY ra.created_at DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), offset);
+   query += ` ORDER BY ra.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
+// remove the push for limit and offset
 
     const [assessments] = await pool.execute(query, params);
 
