@@ -1,31 +1,28 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, 'building-' + uniqueSuffix + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'seismoscan',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    transformation: [{ quality: 'auto', fetch_format: 'auto' }],
   },
 });
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const extname = allowedTypes.test(file.originalname.toLowerCase());
   const mimetype = allowedTypes.test(file.mimetype);
-  if (extname && mimetype) {
-    return cb(null, true);
-  }
-  cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+  if (extname && mimetype) return cb(null, true);
+  cb(new Error('Only image files are allowed'));
 };
 
 const upload = multer({
