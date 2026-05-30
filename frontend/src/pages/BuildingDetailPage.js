@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { buildingAPI, photoAPI } from '../utils/api';
 import { API_BASE_URL } from '../utils/api';
@@ -16,21 +16,22 @@ function BuildingDetailPage() {
   const [photoFile, setPhotoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
+const loadBuilding = useCallback(async () => {
+  try {
+    const res = await buildingAPI.getById(id);
+    setBuilding(res.data.building);
+    setAssessments(res.data.assessments || []);
+    setPhotos(res.data.photos || []);
+  } catch (err) {
+    console.error('Load building error:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
 
-  useEffect(() => { loadBuilding(); }, [id]);
+useEffect(() => { loadBuilding(); }, [loadBuilding]);
 
-  const loadBuilding = async () => {
-    try {
-      const res = await buildingAPI.getById(id);
-      setBuilding(res.data.building);
-      setAssessments(res.data.assessments || []);
-      setPhotos(res.data.photos || []);
-    } catch (err) {
-      console.error('Load building error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handlePhotoUpload = async (e) => {
     e.preventDefault();
