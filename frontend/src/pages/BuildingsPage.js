@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { buildingAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -11,23 +11,22 @@ function BuildingsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+const loadBuildings = useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await buildingAPI.getAll({ search, page, limit: 20 });
+    setBuildings(res.data.buildings);
+    setTotal(res.data.total);
+  } catch (err) {
+    console.error('Load buildings error:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [page, search]);
 
-  useEffect(() => {
-    loadBuildings();
-  }, [page, search]);
-
-  const loadBuildings = async () => {
-    setLoading(true);
-    try {
-      const res = await buildingAPI.getAll({ search, page, limit: 20 });
-      setBuildings(res.data.buildings);
-      setTotal(res.data.total);
-    } catch (err) {
-      console.error('Load buildings error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => {
+  loadBuildings();
+}, [loadBuildings]);
 
   const handleSearch = (e) => {
     e.preventDefault();
