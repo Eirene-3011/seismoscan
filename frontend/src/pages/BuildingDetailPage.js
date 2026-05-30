@@ -258,7 +258,7 @@ useEffect(() => { loadBuilding(); }, [loadBuilding]);
                 {photos.map(p => (
                   <div key={p.id} className="photo-thumb" style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
                     <img
-                      src={`${API_BASE_URL}${p.image_url}`}
+                      src={p.image_url}
                       alt={p.caption || 'Building photo'}
                       style={{ width: '100%', height: '90px', objectFit: 'cover', display: 'block' }}
                       onError={(e) => { e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjkwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iOTAiIGZpbGw9IiNlZWUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iIGZpbGw9IiM5OTkiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='; }}
