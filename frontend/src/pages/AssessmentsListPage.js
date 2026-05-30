@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { rvsAPI, API_BASE_URL } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -11,23 +11,23 @@ function AssessmentsListPage() {
   const [filters, setFilters] = useState({ result: '', date_from: '', date_to: '' });
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    loadAssessments();
-  }, [page, filters]);
+  const loadAssessments = useCallback(async () => {
+  setLoading(true);
+  try {
+    const params = { page, limit: 25, ...filters };
+    Object.keys(params).forEach(k => !params[k] && delete params[k]);
+    const res = await rvsAPI.getAll(params);
+    setAssessments(res.data.assessments || []);
+  } catch (err) {
+    console.error('Load assessments error:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [page, filters]);
 
-  const loadAssessments = async () => {
-    setLoading(true);
-    try {
-      const params = { page, limit: 25, ...filters };
-      Object.keys(params).forEach(k => !params[k] && delete params[k]);
-      const res = await rvsAPI.getAll(params);
-      setAssessments(res.data.assessments || []);
-    } catch (err) {
-      console.error('Load assessments error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => {
+  loadAssessments();
+}, [loadAssessments]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this assessment?')) {
