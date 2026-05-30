@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { buildingAPI, photoAPI } from '../utils/api';
-import { API_BASE_URL } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
 function BuildingDetailPage() {
