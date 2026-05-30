@@ -59,7 +59,7 @@ const getBuildings = async (req, res) => {
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    query += ' GROUP BY b.id ORDER BY b.created_at DESC LIMIT ? OFFSET ?';
+  query += ' GROUP BY b.id, u.name ORDER BY b.created_at DESC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), offset);
 
     const [buildings] = await pool.execute(query, params);
