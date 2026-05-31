@@ -57,6 +57,7 @@ const createAssessment = async (req, res) => {
         adjacency_pounding, adjacency_falling_hazards,
         irregularity_vertical, irregularity_vertical_type,
         irregularity_plan, irregularity_plan_type,
+        irregularity_severe_vertical, irregularity_moderate_vertical,
         hazard_unbraced_chimneys, hazard_parapets, hazard_heavy_cladding,
         hazard_appendages, hazard_other,
         additions_none, additions_yes,
@@ -68,7 +69,7 @@ const createAssessment = async (req, res) => {
         action_structural_other_hazards, action_structural_yes, action_structural_no,
         action_nonstructural_yes, action_nonstructural_no, action_nonstructural_dnk,
         level2_performed, level2_score, level2_nonstructural, comments
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         building_id, req.user.id, assessment_date || new Date().toISOString().split('T')[0],
         building_type, soil_type || 'DNK', occupancy || null,
@@ -79,9 +80,10 @@ const createAssessment = async (req, res) => {
         adjacency_pounding ? 1 : 0, adjacency_falling_hazards ? 1 : 0,
         irregularity_vertical ? 1 : 0, irregularity_vertical_type || null,
         irregularity_plan ? 1 : 0, irregularity_plan_type || null,
+        irregularity_severe_vertical ? 1 : 0, irregularity_moderate_vertical ? 1 : 0,
         hazard_unbraced_chimneys ? 1 : 0, hazard_parapets ? 1 : 0,
         hazard_heavy_cladding ? 1 : 0, hazard_appendages ? 1 : 0, hazard_other || null,
-        additions_none !== false ? 1 : 0, additions_yes || null,
+        additions_none ? 1 : 0, additions_yes || null,
         scoreResult.base_score,
         scoreResult.modifiers.severe_vertical || 0,
         scoreResult.modifiers.moderate_vertical || 0,
@@ -154,8 +156,7 @@ const getAssessments = async (req, res) => {
       params.push(building_id);
     }
 
-   query += ` ORDER BY ra.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
-// remove the push for limit and offset
+    query += ` ORDER BY ra.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
 
     const [assessments] = await pool.execute(query, params);
 
