@@ -12,8 +12,11 @@ const pool = mysql.createPool({
   charset: 'utf8mb4',
   ssl: {
     rejectUnauthorized: true
-  },                                          // ← added missing comma here
+  },
   typeCast: function (field, next) {
+    // Convert TINYINT(1) (MySQL BOOLEAN) → proper JS boolean
+    // Without this, mysql2 returns Buffer objects which are always truthy,
+    // causing every checkbox to appear checked in the PDF regardless of value.
     if (field.type === 'TINY' && field.length === 1) {
       return field.string() === '1';
     }
