@@ -70,6 +70,8 @@ const getReport = async (req, res) => {
         result: assessment.result,
         assessment_date: assessment.assessment_date,
         inspector_name: assessment.inspector_name,
+        additions_none: assessment.additions_none,
+        additions_yes: assessment.additions_yes,
       },
       // Table 2: Photos
       table2_photos: photos.map(p => ({
