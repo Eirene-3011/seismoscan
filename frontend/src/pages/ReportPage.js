@@ -78,7 +78,14 @@ useEffect(() => { loadReport(); }, [loadReport]);
     if (val === 'dnk')  return 'DNK';
     return 'DNK';
   };
-  const checked = (val) => val ? '☑' : '☐';
+  const checked = (val) => {
+    // MySQL TINYINT(1) may arrive as a Buffer if typeCast is not set in the pool.
+    // Explicitly coerce: Buffer <00> → false, Buffer <01> → true, 0 → false, 1 → true.
+    if (val && typeof val === 'object' && val.type === 'Buffer') {
+      return val.data?.[0] === 1 ? '☑' : '☐';
+    }
+    return val ? '☑' : '☐';
+  };
 
   return (
     <div style={{ fontFamily: '"Inter", system-ui, -apple-system, sans-serif' }}>
@@ -308,7 +315,7 @@ useEffect(() => { loadReport(); }, [loadReport]);
                     </tr>
                     <tr style={{ borderBottom: '1px solid #eee' }}>
                       <td style={{ padding: '4px', fontWeight: 600 }}>Additions:</td>
-                      <td colSpan={3}>☐ None ☐ Yes, Year(s) Built:</td>
+                      <td colSpan={3}>{checked(t1.additions_none)} None  {checked(t1.additions_yes)} Yes, Year(s) Built: {t1.additions_yes || ''}</td>
                     </tr>
                     <tr style={{ borderBottom: '1px solid #eee' }}>
                       <td style={{ padding: '4px', fontWeight: 600, verticalAlign: 'top' }}>Occupancy:</td>
