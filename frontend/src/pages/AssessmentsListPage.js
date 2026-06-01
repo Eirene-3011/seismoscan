@@ -12,22 +12,22 @@ function AssessmentsListPage() {
   const [page, setPage] = useState(1);
 
   const loadAssessments = useCallback(async () => {
-  setLoading(true);
-  try {
-    const params = { page, limit: 25, ...filters };
-    Object.keys(params).forEach(k => !params[k] && delete params[k]);
-    const res = await rvsAPI.getAll(params);
-    setAssessments(res.data.assessments || []);
-  } catch (err) {
-    console.error('Load assessments error:', err);
-  } finally {
-    setLoading(false);
-  }
-}, [page, filters]);
+    setLoading(true);
+    try {
+      const params = { page, limit: 25, ...filters };
+      Object.keys(params).forEach(k => !params[k] && delete params[k]);
+      const res = await rvsAPI.getAll(params);
+      setAssessments(res.data.assessments || []);
+    } catch (err) {
+      console.error('Load assessments error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters]);
 
-useEffect(() => {
-  loadAssessments();
-}, [loadAssessments]);
+  useEffect(() => {
+    loadAssessments();
+  }, [loadAssessments]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this assessment?')) {
@@ -51,10 +51,167 @@ useEffect(() => {
     setPage(1);
   };
 
+  // Helper to resolve a full absolute URL for an image path
+  const resolveImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${API_BASE_URL}${path}`;
+  };
+
+  // Build the HTML string for a given table id from current assessments data
+  const buildTableHTML = (tableId) => {
+    switch (tableId) {
+      case 'bulkTable1':
+        return `
+          <h2>TABLE 1: GENERAL BUILDING INFORMATION (ALL RECORDS)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>PHOTO</th><th>BUILDING NAME</th><th>ADDRESS</th><th>USE</th>
+                <th>STORIES (A/B)</th><th>YEAR</th><th>AREA</th><th>OCCUPANCY</th>
+                <th>SOIL</th><th>GEOLOGIC</th><th>ADJACENCY</th><th>VERTICAL</th>
+                <th>PLAN</th><th>FALLING HAZARDS</th><th>SL1</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${assessments.map(a => {
+                const imgUrl = resolveImageUrl(a.building_photo);
+                return `
+                  <tr>
+                    <td>${imgUrl ? `<img src="${imgUrl}" alt="Building" class="export-photo" crossorigin="anonymous" />` : 'N/A'}</td>
+                    <td>${a.building_name || ''}</td>
+                    <td>${a.building_address || ''}</td>
+                    <td>${a.use_type || ''}</td>
+                    <td>${a.stories_above || 0}/${a.stories_below || 0}</td>
+                    <td>${a.year_built || ''}</td>
+                    <td>${a.floor_area || ''}</td>
+                    <td>${a.occupancy || ''}</td>
+                    <td>${a.soil_type || ''}</td>
+                    <td>Liq: ${a.geologic_liquefaction || ''}, Land: ${a.geologic_landslide || ''}, Surf: ${a.geologic_surf_rupt || ''}</td>
+                    <td>Pound: ${a.adjacency_pounding ? 'Y' : 'N'}, Fall: ${a.adjacency_falling_hazards ? 'Y' : 'N'}</td>
+                    <td>${a.irregularity_vertical ? 'Y' : 'N'}</td>
+                    <td>${a.irregularity_plan ? 'Y' : 'N'}</td>
+                    <td>${[
+                      a.hazard_unbraced_chimneys ? 'Chimneys' : '',
+                      a.hazard_parapets ? 'Parapets' : '',
+                      a.hazard_heavy_cladding ? 'Cladding' : '',
+                      a.hazard_appendages ? 'Appendages' : '',
+                    ].filter(Boolean).join(', ') || 'None'}</td>
+                    <td>${a.final_score || ''}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+
+      case 'bulkTable2':
+        return `
+          <h2>TABLE 2: EXTENT OF REVIEW (ALL RECORDS)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>BUILDING NAME</th><th>EXTERIOR</th><th>INTERIOR</th>
+                <th>DRAWING REVIEWED</th><th>SOIL TYPE SOURCE</th>
+                <th>GEOLOGIC HAZARD SOURCE</th><th>CONTACT PERSON</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${assessments.map(a => `
+                <tr>
+                  <td>${a.building_name || ''}</td>
+                  <td>${a.exterior_review || ''}</td>
+                  <td>${a.interior_review || ''}</td>
+                  <td>${a.drawings_reviewed ? 'Yes' : 'No'}</td>
+                  <td>${a.soil_source || ''}</td>
+                  <td>${a.geologic_source || ''}</td>
+                  <td>${a.contact_person || 'N/A'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+      case 'bulkTable3':
+        return `
+          <h2>TABLE 3: OTHER HAZARD (ALL RECORDS)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>BUILDING NAME</th><th>POUNDING</th><th>FALLING HAZARD</th>
+                <th>GEOLOGIC HAZARD</th><th>SIGNIFICANT DAMAGE</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${assessments.map(a => `
+                <tr>
+                  <td>${a.building_name || ''}</td>
+                  <td>${a.other_hazard_pounding ? 'Yes' : 'No'}</td>
+                  <td>${a.other_hazard_falling ? 'Yes' : 'No'}</td>
+                  <td>${a.other_hazard_geologic ? 'Yes' : 'No'}</td>
+                  <td>${a.other_hazard_damage ? 'Yes' : 'No'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+      case 'bulkTable4':
+        return `
+          <h2>TABLE 4: ACTION REQUIRED (ALL RECORDS)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">BUILDING NAME</th>
+                <th colspan="4">DETAILED STRUCTURAL EVALUATION</th>
+                <th colspan="4">DETAILED NONSTRUCTURAL EVALUATION</th>
+              </tr>
+              <tr>
+                <th>YES, UNKNOWN TYPE</th>
+                <th>YES, SCORE CUT-OFF</th>
+                <th>YES, OTHER HAZARDS</th>
+                <th>NO</th>
+                <th>YES, NONSTRUCTURAL EVAL</th>
+                <th>NO, MITIGATION REQ</th>
+                <th>NO, NONE IDENTIFIED</th>
+                <th>DNK</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${assessments.map(a => `
+                <tr>
+                  <td>${a.building_name || ''}</td>
+                  <td>${a.action_structural_unknown_type ? 'Yes' : 'No'}</td>
+                  <td>${a.action_structural_score_cutoff ? 'Yes' : 'No'}</td>
+                  <td>${a.action_structural_other_hazards ? 'Yes' : 'No'}</td>
+                  <td>${a.action_structural_no ? 'Yes' : 'No'}</td>
+                  <td>${a.action_nonstructural_yes ? 'Yes' : 'No'}</td>
+                  <td>${a.action_nonstructural_no ? 'Yes' : 'No'}</td>
+                  <td>${!(a.action_nonstructural_yes || a.action_nonstructural_no || a.action_nonstructural_dnk) ? 'Yes' : 'No'}</td>
+                  <td>${a.action_nonstructural_dnk ? 'Yes' : 'No'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+      default:
+        return '';
+    }
+  };
+
+  // ── FIXED: open a new window instead of replacing document.body ──
   const handlePrintBulk = (tableId) => {
-    const printContent = document.getElementById(tableId).innerHTML;
-    const originalContent = document.body.innerHTML;
-    document.body.innerHTML = `
+    const tableHTML = buildTableHTML(tableId);
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Please allow pop-ups for this site to use the export feature.');
+      return;
+    }
+
+    win.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Bulk Export</title>
@@ -65,41 +222,46 @@ useEffect(() => {
             th { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; }
             h2 { font-size: 16px; margin-bottom: 10px; }
             .export-photo { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+            @media print {
+              @page { size: A4 landscape; margin: 10mm; }
+            }
           </style>
         </head>
-        <body>
-          ${printContent}
-        </body>
+        <body>${tableHTML}</body>
       </html>
-    `;
-    
-    // Wait for images to load before printing
-    const images = document.querySelectorAll('img');
-    if (images.length > 0) {
+    `);
+    win.document.close();
+
+    // Wait for all images to load before printing
+    win.onload = () => {
+      const images = win.document.querySelectorAll('img');
+
+      if (images.length === 0) {
+        win.focus();
+        win.print();
+        win.close();
+        return;
+      }
+
       let loadedCount = 0;
+      const tryPrint = () => {
+        loadedCount++;
+        if (loadedCount === images.length) {
+          win.focus();
+          win.print();
+          win.close();
+        }
+      };
+
       images.forEach(img => {
-        img.onload = () => {
-          loadedCount++;
-          if (loadedCount === images.length) {
-            window.print();
-            document.body.innerHTML = originalContent;
-            window.location.reload();
-          }
-        };
-        img.onerror = () => {
-          loadedCount++;
-          if (loadedCount === images.length) {
-            window.print();
-            document.body.innerHTML = originalContent;
-            window.location.reload();
-          }
-        };
+        if (img.complete) {
+          tryPrint();
+        } else {
+          img.onload = tryPrint;
+          img.onerror = tryPrint; // still proceed even if an image fails
+        }
       });
-    } else {
-      window.print();
-      document.body.innerHTML = originalContent;
-      window.location.reload();
-    }
+    };
   };
 
   const colors = {
@@ -191,122 +353,6 @@ useEffect(() => {
           )}
         </div>
       </header>
-
-      {/* Hidden Bulk Tables for Printing */}
-      <div style={{ display: 'none' }}>
-        <div id="bulkTable1">
-          <h2>TABLE 1: GENERAL BUILDING INFORMATION (ALL RECORDS)</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>PHOTO</th><th>BUILDING NAME</th><th>ADDRESS</th><th>USE</th><th>STORIES (A/B)</th><th>YEAR</th><th>AREA</th><th>OCCUPANCY</th><th>SOIL</th><th>GEOLOGIC</th><th>ADJACENCY</th><th>VERTICAL</th><th>PLAN</th><th>FALLING HAZARDS</th><th>SL1</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assessments.map(a => (
-                <tr key={a.id}>
-                  <td>{a.building_photo ? <img src={`${API_BASE_URL}${a.building_photo}`} alt="Building" className="export-photo" /> : 'N/A'}</td>
-                  <td>{a.building_name}</td>
-                  <td>{a.building_address}</td>
-                  <td>{a.use_type}</td>
-                  <td>{`${a.stories_above || 0}/${a.stories_below || 0}`}</td>
-                  <td>{a.year_built}</td>
-                  <td>{a.floor_area}</td>
-                  <td>{a.occupancy}</td>
-                  <td>{a.soil_type}</td>
-                  <td>{`Liq: ${a.geologic_liquefaction}, Land: ${a.geologic_landslide}, Surf: ${a.geologic_surf_rupt}`}</td>
-                  <td>{`Pound: ${a.adjacency_pounding ? 'Y' : 'N'}, Fall: ${a.adjacency_falling_hazards ? 'Y' : 'N'}`}</td>
-                  <td>{a.irregularity_vertical ? 'Y' : 'N'}</td>
-                  <td>{a.irregularity_plan ? 'Y' : 'N'}</td>
-                  <td>{`${a.hazard_unbraced_chimneys ? 'Chimneys ' : ''}${a.hazard_parapets ? 'Parapets ' : ''}${a.hazard_heavy_cladding ? 'Cladding ' : ''}${a.hazard_appendages ? 'Appendages' : ''}`}</td>
-                  <td>{a.final_score}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div id="bulkTable2">
-          <h2>TABLE 2: EXTENT OF REVIEW (ALL RECORDS)</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>BUILDING NAME</th><th>EXTERIOR</th><th>INTERIOR</th><th>DRAWING REVIEWED</th><th>SOIL TYPE SOURCE</th><th>GEOLOGIC HAZARD SOURCE</th><th>CONTACT PERSON</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assessments.map(a => (
-                <tr key={a.id}>
-                  <td>{a.building_name}</td>
-                  <td>{a.exterior_review}</td>
-                  <td>{a.interior_review}</td>
-                  <td>{a.drawings_reviewed ? 'Yes' : 'No'}</td>
-                  <td>{a.soil_source}</td>
-                  <td>{a.geologic_source}</td>
-                  <td>{a.contact_person || 'N/A'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div id="bulkTable3">
-          <h2>TABLE 3: OTHER HAZARD (ALL RECORDS)</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>BUILDING NAME</th><th>POUNDING</th><th>FALLING HAZARD</th><th>GEOLOGIC HAZARD</th><th>SIGNIFICANT DAMAGE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assessments.map(a => (
-                <tr key={a.id}>
-                  <td>{a.building_name}</td>
-                  <td>{a.other_hazard_pounding ? 'Yes' : 'No'}</td>
-                  <td>{a.other_hazard_falling ? 'Yes' : 'No'}</td>
-                  <td>{a.other_hazard_geologic ? 'Yes' : 'No'}</td>
-                  <td>{a.other_hazard_damage ? 'Yes' : 'No'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div id="bulkTable4">
-          <h2>TABLE 4: ACTION REQUIRED (ALL RECORDS)</h2>
-          <table>
-            <thead>
-              <tr>
-                <th rowSpan="2">BUILDING NAME</th>
-                <th colSpan="4">DETAILED STRUCTURAL EVALUATION</th>
-                <th colSpan="4">DETAILED NONSTRUCTURAL EVALUATION</th>
-              </tr>
-              <tr>
-                <th>YES, UNKNOWN TYPE</th>
-                <th>YES, SCORE CUT-OFF</th>
-                <th>YES, OTHER HAZARDS</th>
-                <th>NO</th>
-                <th>YES, NONSTRUCTURAL EVAL</th>
-                <th>NO, MITIGATION REQ</th>
-                <th>NO, NONE IDENTIFIED</th>
-                <th>DNK</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assessments.map(a => (
-                <tr key={a.id}>
-                  <td>{a.building_name}</td>
-                  <td>{a.action_structural_unknown_type ? 'Yes' : 'No'}</td>
-                  <td>{a.action_structural_score_cutoff ? 'Yes' : 'No'}</td>
-                  <td>{a.action_structural_other_hazards ? 'Yes' : 'No'}</td>
-                  <td>{a.action_structural_no ? 'Yes' : 'No'}</td>
-                  <td>{a.action_nonstructural_yes ? 'Yes' : 'No'}</td>
-                  <td>{a.action_nonstructural_no ? 'Yes' : 'No'}</td>
-                  <td>{!(a.action_nonstructural_yes || a.action_nonstructural_no || a.action_nonstructural_dnk) ? 'Yes' : 'No'}</td>
-                  <td>{a.action_nonstructural_dnk ? 'Yes' : 'No'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {/* Filter Bar */}
       <div style={{
